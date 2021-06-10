@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  reverse-proxy:
+    container_name: reverse_proxy
+    image: nginx
+    build:
+      context: ../
+      dockerfile: docker/reverse-proxy/Dockerfile
+    volumes:
+      - .\reverse-proxy\conf\nginx.conf:/etc/nginx/nginx.conf
+      - .\reverse-proxy\certs:/etc/ssl/certs/nginx
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+
+  api:
+    image: strapi/strapi
+    environment:
+      DATABASE_CLIENT: postgres
+      DATABASE_NAME: strapi
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi
+    volumes:
+      - ./app:/srv/app
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: strapi
+      POSTGRES_USER: strapi
+      POSTGRES_PASSWORD: strapi
+    volumes:
+      - ./data:/var/lib/postgresql/data
